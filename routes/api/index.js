@@ -5,6 +5,6 @@ const thoughtsRoutes =require("./thoughtsRoutes");
 
 router.use("/users", userRoutes);
 router.use("/thoughts", thoughtsRoutes);
-// router.use((req, res) => res.send("wrong route!"));
+
 
 module.exports = router;
