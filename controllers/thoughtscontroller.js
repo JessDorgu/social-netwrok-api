@@ -1,6 +1,7 @@
 const mongoose=require("mongoose");
 const Thought = require('../models/thoughts'); 
 const Reaction = require("../models/reaction");
+const User = require("../models/user");
 
 const ThoughtsController= {
   async getAllThoughts(req, res) {
@@ -19,8 +20,6 @@ const ThoughtsController= {
   async getThoughtById(req, res) {
     try {
       const { id } = req.params;
-  
-      // Validate thoughtId as a valid ObjectId
       if (!mongoose.Types.ObjectId.isValid(id)) {
         return res.status(400).json({ message: 'Invalid thought ID' });
       }
@@ -37,35 +36,39 @@ const ThoughtsController= {
       res.status(500).json({ message: 'Server Error' });
     }
   },
- async createThought (req, res) {
-  try {
-    const { userId } = req.params;
-    const { content } = req.body;
-
-
-    const thought = new Thought({ content, user: userId });
-    await thought.save();
-
-
-    res.status(201).json(thought);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Here is the prob' });
-  }
-},
-
+  
+  async createThought(req, res) {
+    try {
+      const { userId, thoughtText, username } = req.body; 
+  
+      const thought = await Thought.create({ thoughtText, username }); 
+  
+      const userData = await User.findOneAndUpdate(
+        { _id: userId },
+        { $push: { thoughts: thought._id } },
+        { new: true }
+      );
+  
+      if (!userData) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.status(201).json(thought);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Server Error' });
+    }
+  },
+  
 
 
 async updatedThought(req, res) {
   try {
-    const { thoughtId } = req.params;
-    const { content } = req.body;
 
-
-    const updatedThought = await Thought.findByIdAndUpdate(
-      thoughtId,
-      { content },
-      { new: true }
+    const updatedThought= await Thought.findOneAndUpdate(
+      { _id: req.params.id },
+      { $set: req.body },
+      { new: true, runValidators: true }
     );
 
 
@@ -87,7 +90,7 @@ async deleteThought(req, res) {
     const { thoughtId } = req.params;
 
 
-    const deletedThought = await Thought.findByIdAndRemove(thoughtId);
+    const deletedThought = await Thought.findOneAndDelete(thoughtId);
 
 
     if (!deletedThought) {
@@ -109,17 +112,16 @@ async createReaction (req,res) {
     if(!thought){ return res.status(404).json(error);
     }
   
-  const reaction = new Reaction ({reactionBody, username});
-  
-  thought.reactions.push(reaction);
-  await thought.save();
-  await reaction.save();
-  
+    const reaction = new Reaction({ reactionBody, username });
 
-  res.status(201).json(thought);
-}catch (error) {
+    thought.reactions.push(reaction);
+    await thought.save();
+    await reaction.save();
+
+    res.status(201).json(thought);
+  } catch (error) {
     console.error(error);
-    res.status(500).json(error);
+    res.status(500).json({ message: 'Server Error' });
   }
 },
 

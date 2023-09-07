@@ -37,68 +37,83 @@ async getAllUsers (req,res) {
 },
 
 async updateUser(req,res) {
-    try{
-        const updatedUser = await user.findByIdAndUpdate (req.params.id,
-            req.body,
-            {new: ture});
-            if (!updatedUser) {
-                return res.status(500).json(error);
-            }
-            res.json(updatedUser);
-        } catch (error) {
-          res.status(200).json(error);
-        }
-        },
+  try {
+    const userData = await User.findOneAndUpdate(
+      { _id: req.params.id },
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
 
-async deleteUser (req,res){
-    try{
-        const deletedUser = await user.findByIdAndRemove (req.params.id);
-        if(!deletedUser) {return res.status(500).json(error);
-        } 
-        
-        res.json(deletedUser);
-    }catch(error){
-            res.status(500).json(error);
-        }
-},
-
-async addFriend (req,res) {
-    try{
-        const {userId,friendId} = req.params;
-        const user = await user.findById(userId);
-    if (!user){
-        return res.status(404).json(error);
-    } 
-
-    user.friends.push(friendId);
-    await user.save();
-
-    res.status(200).json({message: "friend has been added"});
-} catch(error){
-    console.error(error);
-    res.status(500).json(error);
-
+    if (!userData) {
+      res.status(404).json({ message: 'No user with this id!' });
+      return
     }
+
+    res.json(userData);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 },
 
-async deleteFriend (req,res){
-    try{
-        const {userId, friendId} = req.params;
-    
-    const user = await user.findById(userId);
-    if (!user){
-        return res.status(404).json(error);
-    } 
-    
+async deleteUser(req, res) {
+  try {
+      const userData = await User.findOneAndDelete({ _id: req.params.id });
+      
+      if (!userData) {
+        res.status(404).json({ message: 'No user found with this id!' });
+        return;
+      }
+      
+      res.json(userData);
+    } catch(err) {
+      res.status(500).json(err)
+    };
+  },
+
+  async addFriend(req, res) {
+    try {
+      const { userId, friendId } = req.params;
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      if (user.friends.includes(friendId)) {
+        return res.status(400).json({ message: 'Friend already exists in the list' });
+      }
+
+      user.friends.push(friendId);
+      await user.save();
+
+      res.status(200).json({ message: "Friend has been added" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json(error);
+    }
+  },
+
+  async deleteFriend (req,res){
+
+  try {
+    const { userId, friendId } = req.params;
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (!user.friends.includes(friendId)) {
+      return res.status(400).json({ message: 'Friend not found in the list' });
+    }
+
     user.friends.pull(friendId);
     await user.save();
 
-    res.status(200).json({message: "friend has been removed"});
-} catch(error){
+    res.status(200).json({ message: "Friend has been removed" });
+  } catch (error) {
     console.error(error);
     res.status(500).json(error);
-}
-}
-}
+  }
+},
+};
 
 module.exports = UserController;
