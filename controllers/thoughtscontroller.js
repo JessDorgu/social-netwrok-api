@@ -109,23 +109,23 @@ async deleteThought(req, res) {
       const { thoughtId } = req.params;
       const { reactionBody, username } = req.body;
   
-      // Find the thought by its ID
+
       const thought = await Thought.findById(thoughtId);
   
       if (!thought) {
         return res.status(404).json({ message: 'Thought not found' });
       }
   
-      // Create a new reaction
+  
       const newReaction = {
         reactionBody,
         username,
       };
   
-      // Push the new reaction to the thought's reactions array
+    
       thought.reactions.push(newReaction);
   
-      // Save the thought with the new reaction
+   
       await thought.save();
   
       res.status(201).json(thought);
@@ -138,14 +138,14 @@ async deleteThought(req, res) {
     try {
       const { thoughtId, reactionId } = req.params;
   
-      // Find the thought by thoughtId
+   
       const thought = await Thought.findById(thoughtId);
   
       if (!thought) {
         return res.status(404).json({ message: 'Thought not found' });
       }
   
-      // Find the index of the reaction to be deleted
+
       const reactionIndex = thought.reactions.findIndex(
         (reaction) => reaction._id.toString() === reactionId
       );
@@ -154,10 +154,10 @@ async deleteThought(req, res) {
         return res.status(404).json({ message: 'Reaction not found' });
       }
   
-      // Remove the reaction from the thought's reactions array
       thought.reactions.splice(reactionIndex, 1);
   
-      // Save the updated thought
+   
+      
       await thought.save();
   
       res.status(200).json({ message: 'Reaction deleted' });
