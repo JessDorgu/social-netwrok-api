@@ -21,6 +21,7 @@
   Clone the Repo, go into the root of the project and run `npm install` setup the `.env` file and then run npm start. API testing can be done in Insomnia or Postman.
 
   ## Usage
+[Untitled_ Sep 7, 2023 3_52 PM.webm](https://github.com/JessDorgu/social-netwrok-api/assets/127277553/94e2a921-17ba-43ca-b620-d0b02ee020b8)
 
   
 
