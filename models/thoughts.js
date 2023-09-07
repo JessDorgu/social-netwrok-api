@@ -20,17 +20,23 @@ const thoughtSchema = new mongoose.Schema({
   },
   reactions: [
     {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: {Reaction},
+      reactionBody: {
+        type: String,
+        required: true,
+        maxlength: 280,
+      },
+      username: {
+        type: String,
+        required: true,
+      },
+      createdAt: {
+        type: Date,
+        default: Date.now,
+        get: (timestamp) => new Date(timestamp).toISOString(),
+      },
     },
-  ],},
-  {toJSON:{
-    getters:true,
-    virtuals:true,
-  },
-id:false,
-}
-);
+  ],
+});
 
 
 thoughtSchema.virtual('reactionCount').get(function () {

@@ -104,58 +104,71 @@ async deleteThought(req, res) {
     res.status(500).json({ message: 'Server Error' });
   }},
 
-async createReaction (req,res) {
-  try {
-    const {thoughtId} = req.params;
-    const {reactionBody, username} = req.body;
-    const thought = await Thought.findById(thoughtId);
-    if(!thought){ return res.status(404).json(error);
-    }
+  async createReaction(req, res) {
+    try {
+      const { thoughtId } = req.params;
+      const { reactionBody, username } = req.body;
   
-    const reaction = new Reaction({ reactionBody, username });
-
-    thought.reactions.push(reaction);
-    await thought.save();
-    await reaction.save();
-
-    res.status(201).json(thought);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+      // Find the thought by its ID
+      const thought = await Thought.findById(thoughtId);
+  
+      if (!thought) {
+        return res.status(404).json({ message: 'Thought not found' });
+      }
+  
+      // Create a new reaction
+      const newReaction = {
+        reactionBody,
+        username,
+      };
+  
+      // Push the new reaction to the thought's reactions array
+      thought.reactions.push(newReaction);
+  
+      // Save the thought with the new reaction
+      await thought.save();
+  
+      res.status(201).json(thought);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json(error);
+    }
+  },
+  async deleteReaction(req, res) {
+    try {
+      const { thoughtId, reactionId } = req.params;
+  
+      // Find the thought by thoughtId
+      const thought = await Thought.findById(thoughtId);
+  
+      if (!thought) {
+        return res.status(404).json({ message: 'Thought not found' });
+      }
+  
+      // Find the index of the reaction to be deleted
+      const reactionIndex = thought.reactions.findIndex(
+        (reaction) => reaction._id.toString() === reactionId
+      );
+  
+      if (reactionIndex === -1) {
+        return res.status(404).json({ message: 'Reaction not found' });
+      }
+  
+      // Remove the reaction from the thought's reactions array
+      thought.reactions.splice(reactionIndex, 1);
+  
+      // Save the updated thought
+      await thought.save();
+  
+      res.status(200).json({ message: 'Reaction deleted' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server Error' });
+    }
   }
-},
+  
+  
+};
 
-async deleteReaction (req,res){
-try {
-  const { thoughtId, reactionId } = req.params;
-
-
-  const thought = await Thought.findById(thoughtId);
-  if (!thought) {
-    return res.status(404).json({ message: 'Thought not found' });
-  }
-
-  const reactionIndex = thought.reactions.findIndex(
-    (reaction) => reaction._id.toString() === reactionId
-  );
-
-  if (reactionIndex === -1) {
-    return res.status(404).json({ message: 'Reaction not found' });
-  }
-
-
-  thought.reactions.splice(reactionIndex, 1);
-
-
-  await thought.save();
-
-
-  res.status(200).json({ message: 'Reaction deleted' });
-} catch (error) {
-  console.error(error);
-  res.status(500).json({ message: 'Server Error' });
-}
-}
-}
 
 module.exports = ThoughtsController;
